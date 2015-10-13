@@ -114,26 +114,31 @@ public class first_tab
    * */
   private void togglePeriodicLocationUpdates() {
     if (!mRequestingLocationUpdates) {
-      // Changing the button text
-      btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
+        // Changing the button text
+        btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
 
-      mRequestingLocationUpdates = true;
+        mRequestingLocationUpdates = true;
 
-      // Starting the location updates
-      startLocationUpdates();
+        // Starting the location updates
+        startLocationUpdates();
 
-      Log.d(TAG, "Periodic location updates started!");
+        this.task = new DownloadWebPageTask();
+        //mRequestingLocationUpdates=false; //gt den ginete na enhmerothei apo thn allh diergasia
+        this.task.execute(new String[]{"http://www.vogella.com"});
+
+        Log.d(TAG, "Periodic location updates started!");
 
     } else {
-      // Changing the button text
-      btnStartLocationUpdates.setText(getString(R.string.btn_start_location_updates));
+        // Changing the button text
+        btnStartLocationUpdates.setText(getString(R.string.btn_start_location_updates));
 
-      mRequestingLocationUpdates = false;
+        mRequestingLocationUpdates = false;
 
-      // Stopping the location updates
-      stopLocationUpdates();
+        // Stopping the location updates
+        stopLocationUpdates();
+        this.task.cancel(true);
 
-      Log.d(TAG, "Periodic location updates stopped!");
+        Log.d(TAG, "Periodic location updates stopped!");
     }
   }
 
@@ -219,9 +224,8 @@ public class first_tab
         togglePeriodicLocationUpdates();
       }
     });
-    this.task = new DownloadWebPageTask();
-      mRequestingLocationUpdates=false; //gt den ginete na enhmerothei apo thn allh diergasia
-      this.task.execute(new String[] { "http://www.vogella.com" });
+
+
     System.out.println("**finish OnCreate");
   }
   
@@ -339,6 +343,8 @@ public class first_tab
                     textView.setText("Last Location lat : " + d1 + " long : " + d2);
                     writeLatestLocation(d1, d2);
                     mGoogleApiClient.disconnect();
+                    mGoogleApiClient.connect();
+                    //stopLocationUpdates();
                     btnStartLocationUpdates.setText(getString(R.string.btn_start_location_updates));
                     mRequestingLocationUpdates=false;  //den exei nohma einai allh diergasia
                 }
