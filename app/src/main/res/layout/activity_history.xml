@@ -1,41 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:id="@+id/coordinatorLayout"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/main_layout"
-    android:clickable="true"
-    android:focusable="true"
-    android:background="?android:attr/selectableItemBackground">
-    >
+    tools:context=".recyclerview/FeedListActivity"
+    android:background="@color/lightGray">
 
 
 
-    <LinearLayout
-        android:id="@+id/buttons"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
 
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        <android.support.v4.widget.SwipeRefreshLayout
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:id="@+id/contentView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <view
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                class="android.support.v7.widget.RecyclerView"
+                android:id="@+id/recycler_view"
+                android:layout_alignParentStart="true"
+                tools:ignore="RtlCompat" />
+        </android.support.v4.widget.SwipeRefreshLayout>
+        <include
+            layout="@layout/toolbar"/>
 
-        <TextView android:text="hello_world" android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/textHistory"
-            android:gravity="top"
-            android:scrollbars="vertical"/>
-
-    </LinearLayout>
-
-    <view
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        class="android.support.v7.widget.RecyclerView"
-        android:id="@+id/recycler_view"
-        android:layout_alignParentStart="true"
-        tools:ignore="RtlCompat" />
-
-</RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>

@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -23,14 +26,15 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-public class FeedListActivity
-  extends Activity
+public class FeedListActivity extends AppCompatActivity implements AppBarLayout.OnOffsetChangedListener
 {
   private static final String TAG = "RecyclerViewExample";
   private MyRecyclerAdapter adapter;
-  private List<FeedItem> feedItemList = new ArrayList();
+  private ArrayList feedItemList = new ArrayList();
   private LinkedList<String> list_string = new LinkedList();
   private RecyclerView mRecyclerView;
+  private SwipeRefreshLayout mSwipeRefreshLayout;
+  private AppBarLayout appBarLayout;
   
   private void parseResult(LinkedList<String> paramLinkedList)
   {
@@ -57,14 +61,12 @@ public class FeedListActivity
   protected void onCreate(Bundle paramBundle)
   {
     super.onCreate(paramBundle);
-    requestWindowFeature(5);
+    //requestWindowFeature(5);
     setContentView(R.layout.activity_history);
     this.mRecyclerView = ((RecyclerView)findViewById(R.id.recycler_view));
     this.mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-    this.mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener()
-    {
-      public void onItemClick(View paramAnonymousView, int paramAnonymousInt)
-      {
+    this.mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener() {
+      public void onItemClick(View paramAnonymousView, int paramAnonymousInt) {
         System.out.println("//**//" + paramAnonymousInt + "//**//");
         String[] arrayOfString = FeedListActivity.this.returnLatLong(paramAnonymousInt, FeedListActivity.this.list_string);
         System.out.println("//**//" + arrayOfString[0] + " " + arrayOfString[1] + "//**//");
@@ -73,6 +75,23 @@ public class FeedListActivity
         FeedListActivity.this.startActivity(localIntent);
       }
     }));
+
+
+    mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.contentView);
+    mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
+    mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+      @Override
+      public void onRefresh() {
+        mSwipeRefreshLayout.setRefreshing(false);
+        feedItemList = new ArrayList();
+        list_string = new LinkedList();
+        new AsyncHttpTask().execute(new String[]{"parking_locations.txt"});
+      }
+    });
+
+    appBarLayout = (AppBarLayout) findViewById(R.id.appBarLayout);
+
+
     File localFile = new File(getFilesDir(), "parking_locations.txt");
     if (!localFile.exists()) {
       try {
@@ -83,6 +102,27 @@ public class FeedListActivity
       }
     }
     new AsyncHttpTask().execute(new String[]{"parking_locations.txt"});
+  }
+
+  @Override
+  public void onOffsetChanged(AppBarLayout appBarLayout, int i) {
+    if (i == 0) {
+      mSwipeRefreshLayout.setEnabled(true);
+    } else {
+      mSwipeRefreshLayout.setEnabled(false);
+    }
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    appBarLayout.addOnOffsetChangedListener(this);
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    appBarLayout.removeOnOffsetChangedListener(this);
   }
   
   public String[] returnLatLong(int paramInt, LinkedList<String> paramLinkedList)

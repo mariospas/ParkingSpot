@@ -65,7 +65,7 @@ public class first_tab
     private BroadcastReceiver receiver;
     private DownloadWebPageTask task;
     private TextView textView;
-    PendingIntent mActivityRecongPendingIntent;
+    PendingIntent mActivityRecongPendingIntent = null;
   
   static
   {
@@ -162,6 +162,7 @@ public class first_tab
         sendBroadcast(localIntent);
 
         unregisterReceiver(this.receiver);
+        receiver = null;
 
         //this.task.cancel(true);
 
@@ -262,9 +263,9 @@ public class first_tab
   protected void onDestroy()
   {
     super.onDestroy();
+    if(mActivityRecongPendingIntent != null) ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
     this.mGoogleApiClient.disconnect();
-    unregisterReceiver(this.receiver);
-    this.task.cancel(true);
+    if(receiver != null) unregisterReceiver(this.receiver);
   }
 
     @Override
@@ -385,6 +386,7 @@ public class first_tab
                     btnStartLocationUpdates.setText(getString(R.string.btn_start_location_updates));
                     mRequestingLocationUpdates=false;  //den exei nohma einai allh diergasia
                     unregisterReceiver(receiver);
+                    receiver = null;
                     return;
                 }
             }
