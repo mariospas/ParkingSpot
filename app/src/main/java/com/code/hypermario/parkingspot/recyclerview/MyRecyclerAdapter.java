@@ -42,7 +42,7 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<FeedListRowHolder> {
             .placeholder(R.drawable.placeholder)
             .into(feedListRowHolder.thumbnail);
 
-    feedListRowHolder.title.setText(Html.fromHtml(feedItem.getTitle()));
+    feedListRowHolder.title.setText(feedItem.getTitle());
   }
 
   @Override
