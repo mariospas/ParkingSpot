@@ -4,31 +4,29 @@
     android:layout_height="match_parent">
 
 
+
+
     <LinearLayout
         android:id="@+id/tabCurrent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <Button
+        <ImageView
+            android:id="@+id/imageDisplay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Start"
-            android:id="@+id/buttonStart"
-            android:layout_gravity="center_horizontal" />
-        <LinearLayout
-            android:id="@+id/dynamicTxT"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-        </LinearLayout>
+            android:layout_gravity="center_horizontal"/>
+
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="START LOCATION UPDATES"
             android:id="@+id/buttonLoop"
             android:layout_gravity="center_horizontal" />
-        <TextView android:text="hello_world" android:layout_width="match_parent"
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/msg"
             android:gravity="top"

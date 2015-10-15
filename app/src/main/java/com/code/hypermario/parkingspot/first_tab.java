@@ -7,15 +7,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender.SendIntentException;
+import android.graphics.Point;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
@@ -32,6 +35,8 @@ import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.squareup.picasso.Picasso;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,6 +71,10 @@ public class first_tab
     private DownloadWebPageTask task;
     private TextView textView;
     PendingIntent mActivityRecongPendingIntent = null;
+    private Integer images[] = {R.drawable.car, R.drawable.man};
+    private int currImage = 0;
+    int width;
+    int height;
   
   static
   {
@@ -194,7 +203,7 @@ public class first_tab
   
   public void onConnected(Bundle paramBundle)
   {
-      displayLocation();
+      //displayLocation();
       if (this.mRequestingLocationUpdates) {
         startLocationUpdates();
 
@@ -227,9 +236,9 @@ public class first_tab
   {
     super.onCreate(paramBundle);
     setContentView(R.layout.content_main);
-    this.lView = ((LinearLayout)findViewById(R.id.dynamicTxT));
+    //this.lView = ((LinearLayout)findViewById(R.id.dynamicTxT));
     this.lblLocation = new TextView(this);
-    this.btnShowLocation = ((Button)findViewById(R.id.buttonStart));
+    //this.btnShowLocation = ((Button)findViewById(R.id.buttonStart));
     this.btnStartLocationUpdates = ((Button)findViewById(R.id.buttonLoop));
     this.textView = ((TextView)findViewById(R.id.msg));
     this.textView.setMovementMethod(new ScrollingMovementMethod());
@@ -241,13 +250,13 @@ public class first_tab
       System.out.println("**try build API ActivityRecognition");
       createLocationRequest();
     }
-    this.btnShowLocation.setOnClickListener(new OnClickListener()
+    /*this.btnShowLocation.setOnClickListener(new OnClickListener()
     {
       public void onClick(View paramAnonymousView)
       {
         displayLocation();
       }
-    });
+    });*/
     this.btnStartLocationUpdates.setOnClickListener(new OnClickListener()
     {
       public void onClick(View paramAnonymousView)
@@ -256,9 +265,29 @@ public class first_tab
       }
     });
 
+      Display display = getWindowManager().getDefaultDisplay();
+      Point size = new Point();
+      display.getSize(size);
+      width = size.x;
+      height = size.y;
+
+      //setInitialImage();
 
     System.out.println("**finish OnCreate");
   }
+
+
+    private void setInitialImage() {
+        setCurrentImage();
+    }
+
+    private void setCurrentImage() {
+
+        final ImageView imageView = (ImageView) findViewById(R.id.imageDisplay);
+        //imageView.setImageResource(images[currImage]);
+        Picasso.with(this).load(images[currImage]).resize((int) (width * 0.9), (int) (width * 0.9)).into(imageView);
+
+    }
   
   protected void onDestroy()
   {
@@ -277,7 +306,7 @@ public class first_tab
                 Toast.LENGTH_SHORT).show();
 
         // Displaying the new location on UI
-        displayLocation();
+        //displayLocation();
     }
   
   protected void onPause()
@@ -367,13 +396,20 @@ public class first_tab
                 String str1 = new SimpleDateFormat("h:mm:ss a").format(localCalendar.getTime());
                 String str2 = str1 + " " + paramAnonymousIntent.getStringExtra("activity") + " " + "Confidence : " + paramAnonymousIntent.getExtras().getInt("confidence") + "\n";
                 String str3 = first_tab.this.textView.getText() + str2;
-                first_tab.this.textView.setText(str3);
+                //first_tab.this.textView.setText(str3);
                 if (paramAnonymousIntent.getStringExtra("activity").equals("dead"))
                 {
                     System.out.println("receiver dead");
                     return;
                 }
-
+                if (paramAnonymousIntent.getStringExtra("activity").equals("Walking") || paramAnonymousIntent.getStringExtra("activity").equals("On Foot")) {
+                    currImage = 0;
+                    setCurrentImage();
+                }
+                if (paramAnonymousIntent.getStringExtra("activity").equals("In Vehicle")) {
+                    currImage = 1;
+                    setCurrentImage();
+                }
                 if (!paramAnonymousIntent.getStringExtra("activity").equals("Still")) {
                     double d1 = mLastLocation.getLatitude();
                     double d2 = mLastLocation.getLongitude();
