@@ -144,7 +144,7 @@ public class first_tab
 
 
         //Update the TextView
-        textView.setText("Connected to Google Play Services \nWaiting for Active Recognition... \n");
+        //textView.setText("Connected to Google Play Services \nWaiting for Active Recognition... \n");
         /////activity service recognition start////////////
 
 
@@ -218,7 +218,7 @@ public class first_tab
 
 
         //Update the TextView
-        textView.setText("Connected to Google Play Services \nWaiting for Active Recognition... \n");
+        //textView.setText("Connected to Google Play Services \nWaiting for Active Recognition... \n");
       }
 
   }
@@ -241,8 +241,6 @@ public class first_tab
     this.lblLocation = new TextView(this);
     //this.btnShowLocation = ((Button)findViewById(R.id.buttonStart));
     this.btnStartLocationUpdates = ((Button)findViewById(R.id.buttonLoop));
-    this.textView = ((TextView)findViewById(R.id.msg));
-    this.textView.setMovementMethod(new ScrollingMovementMethod());
     this.mContext = this;
     if (checkPlayServices())
     {
@@ -397,7 +395,7 @@ public class first_tab
                 Calendar localCalendar = Calendar.getInstance();
                 String str1 = new SimpleDateFormat("h:mm:ss a").format(localCalendar.getTime());
                 String str2 = str1 + " " + paramAnonymousIntent.getStringExtra("activity") + " " + "Confidence : " + paramAnonymousIntent.getExtras().getInt("confidence") + "\n";
-                String str3 = first_tab.this.textView.getText() + str2;
+                //String str3 = first_tab.this.textView.getText() + str2;
                 //first_tab.this.textView.setText(str3);
                 String newActivity = "dead";
                 if (paramAnonymousIntent.getStringExtra("activity").equals("dead"))
@@ -422,7 +420,7 @@ public class first_tab
                 if (previousActivity.equals("In Vehicle") && newActivity.equals("Walking")) {
                     double d1 = mLastLocation.getLatitude();
                     double d2 = mLastLocation.getLongitude();
-                    textView.setText("Last Location lat : " + d1 + " long : " + d2);
+                    //textView.setText("Last Location lat : " + d1 + " long : " + d2);
                     writeLatestLocation(d1, d2);
                     //mGoogleApiClient.disconnect();
                     //mGoogleApiClient.connect();
@@ -445,7 +443,7 @@ public class first_tab
     
     protected void onPostExecute(String paramString)
     {
-      textView.setText(paramString);
+      //textView.setText(paramString);
     }
   }
 }
