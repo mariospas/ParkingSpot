@@ -2,6 +2,7 @@ package com.code.hypermario.parkingspot.recyclerview;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.code.hypermario.parkingspot.R;
+import com.yqritc.recyclerviewflexibledivider.HorizontalDividerItemDecoration;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -65,6 +67,12 @@ public class FeedListActivity extends AppCompatActivity implements AppBarLayout.
     //requestWindowFeature(5);
     setContentView(R.layout.activity_history);
     this.mRecyclerView = ((RecyclerView)findViewById(R.id.recycler_view));
+    mRecyclerView.addItemDecoration(
+            new HorizontalDividerItemDecoration.Builder(this)
+                    .color(Color.rgb(89,211,225))
+                    .sizeResId(R.dimen.cardview_compat_inset_shadow)
+                    .marginResId(R.dimen.activity_horizontal_margin, R.dimen.activity_horizontal_margin)
+                    .build());
     this.mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     this.mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener() {
       public void onItemClick(View paramAnonymousView, int paramAnonymousInt) {

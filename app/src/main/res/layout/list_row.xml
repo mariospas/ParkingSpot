@@ -2,16 +2,20 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="2dp">
+    android:padding="2dp"
+    android:weightSum="1"
+    >
+
 
     <ImageView
         android:id="@+id/thumbnail"
         android:layout_width="80dp"
         android:layout_height="50dp"
         android:layout_alignParentTop="true"
-        android:layout_gravity="center_horizontal"
+        android:layout_gravity="center_vertical"
         android:scaleType="fitCenter"
-        android:src="@drawable/placeholder" />
+        android:src="@drawable/placeholder"
+        />
 
     <TextView
         android:id="@+id/title"
@@ -20,6 +24,10 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_margin="8dp"
-        android:maxLines="3" />
+        android:maxLines="3"
+        />
+
+
+
 
 </LinearLayout>

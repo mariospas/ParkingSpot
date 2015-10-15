@@ -406,16 +406,16 @@ public class first_tab
                     return;
                 }
                 if (paramAnonymousIntent.getStringExtra("activity").equals("Walking") || paramAnonymousIntent.getStringExtra("activity").equals("On Foot")) {
-                    currImage = 0;
+                    currImage = 1;
                     setCurrentImage();
 
-                    if(Integer.parseInt(paramAnonymousIntent.getStringExtra("confidence")) > 40)
+                    if(paramAnonymousIntent.getIntExtra("confidence",0) > 40)
                     {
                         newActivity = new String("Walking");
                     }
                 }
                 if (paramAnonymousIntent.getStringExtra("activity").equals("In Vehicle")) {
-                    currImage = 1;
+                    currImage = 0;
                     setCurrentImage();
                     previousActivity = new String("In Vehicle");
                 }

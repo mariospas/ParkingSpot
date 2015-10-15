@@ -41,3 +41,7 @@ dependencies {
     compile 'com.android.support:palette-v7:+'
 
 }
+
+dependencies {
+    compile 'com.yqritc:recyclerview-flexibledivider:1.2.6'
+}

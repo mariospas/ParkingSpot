@@ -22,7 +22,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="START LOCATION UPDATES"
+            android:text="START TRACKING"
             android:id="@+id/buttonLoop"
             android:layout_gravity="center_horizontal"
             android:textColor="@color/lightGray"
