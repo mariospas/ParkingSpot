@@ -75,6 +75,7 @@ public class first_tab
     private int currImage = 0;
     int width;
     int height;
+    String previousActivity = "dead";
   
   static
   {
@@ -398,6 +399,7 @@ public class first_tab
                 String str2 = str1 + " " + paramAnonymousIntent.getStringExtra("activity") + " " + "Confidence : " + paramAnonymousIntent.getExtras().getInt("confidence") + "\n";
                 String str3 = first_tab.this.textView.getText() + str2;
                 //first_tab.this.textView.setText(str3);
+                String newActivity = "dead";
                 if (paramAnonymousIntent.getStringExtra("activity").equals("dead"))
                 {
                     System.out.println("receiver dead");
@@ -406,12 +408,18 @@ public class first_tab
                 if (paramAnonymousIntent.getStringExtra("activity").equals("Walking") || paramAnonymousIntent.getStringExtra("activity").equals("On Foot")) {
                     currImage = 0;
                     setCurrentImage();
+
+                    if(Integer.parseInt(paramAnonymousIntent.getStringExtra("confidence")) > 40)
+                    {
+                        newActivity = new String("Walking");
+                    }
                 }
                 if (paramAnonymousIntent.getStringExtra("activity").equals("In Vehicle")) {
                     currImage = 1;
                     setCurrentImage();
+                    previousActivity = new String("In Vehicle");
                 }
-                if (!paramAnonymousIntent.getStringExtra("activity").equals("Still")) {
+                if (previousActivity.equals("In Vehicle") && newActivity.equals("Walking")) {
                     double d1 = mLastLocation.getLatitude();
                     double d2 = mLastLocation.getLongitude();
                     textView.setText("Last Location lat : " + d1 + " long : " + d2);
