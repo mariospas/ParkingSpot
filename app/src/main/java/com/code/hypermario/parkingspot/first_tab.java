@@ -71,7 +71,7 @@ public class first_tab
     private DownloadWebPageTask task;
     private TextView textView;
     PendingIntent mActivityRecongPendingIntent = null;
-    private Integer images[] = {R.drawable.car, R.drawable.man};
+    private Integer images[] = {R.drawable.car, R.drawable.man,R.drawable.hole};
     private int currImage = 0;
     int width;
     int height;
@@ -271,7 +271,8 @@ public class first_tab
       width = size.x;
       height = size.y;
 
-      //setInitialImage();
+      currImage = 2;
+      setCurrentImage();
 
     System.out.println("**finish OnCreate");
   }

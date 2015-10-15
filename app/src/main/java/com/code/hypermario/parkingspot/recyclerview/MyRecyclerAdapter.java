@@ -2,6 +2,7 @@ package com.code.hypermario.parkingspot.recyclerview;
 
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -43,6 +44,8 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<FeedListRowHolder> {
             .into(feedListRowHolder.thumbnail);
 
     feedListRowHolder.title.setText(feedItem.getTitle());
+    feedListRowHolder.title.setTextColor(Color.parseColor("#ffffff"));
+    feedListRowHolder.title.setTextSize(15);
   }
 
   @Override
