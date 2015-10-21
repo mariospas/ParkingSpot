@@ -12,11 +12,11 @@
     <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"/>
 
 
-    <uses-feature android:name="android.hardware.TriggerEvent" />
-    <uses-feature android:name="android.hardware.TriggerEventListener" />
-    <uses-feature android:name="android.hardware.Sensor" />
-    <uses-feature android:name="android.hardware.SensorEvent" />
-    <uses-feature android:name="android.hardware.SensorEventListener" />
+    <uses-feature android:name="android.hardware.TriggerEvent" android:required="false"/>
+    <uses-feature android:name="android.hardware.TriggerEventListener" android:required="false"/>
+    <uses-feature android:name="android.hardware.Sensor" android:required="false"/>
+    <uses-feature android:name="android.hardware.SensorEvent" android:required="false"/>
+    <uses-feature android:name="android.hardware.SensorEventListener" android:required="false"/>
 
     <application
         android:allowBackup="true"
@@ -90,6 +90,7 @@
 
 
     <service android:name=".ActivityRecognitionIntentService"/>
+    <service android:name=".ActivityReceiver"/>
 
     </application>
 

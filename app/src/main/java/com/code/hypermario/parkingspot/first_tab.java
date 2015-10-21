@@ -46,8 +46,7 @@ import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class first_tab
-  extends AppCompatActivity
+public class first_tab extends AppCompatActivity
   implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener
 {
     private static int DISPLACEMENT = 10;
@@ -76,6 +75,7 @@ public class first_tab
     int width;
     int height;
     String previousActivity = "dead";
+    Intent active;
   
   static
   {
@@ -131,16 +131,18 @@ public class first_tab
         mRequestingLocationUpdates = true;
 
         // Starting the location updates
-        startLocationUpdates();
+        //startLocationUpdates();
+        active = new Intent(this, ActivityReceiver.class);
+        startService(active);
 
         /////activity service recognition start////////////
-        System.out.println("**try to find Intent");
+       /* System.out.println("**try to find Intent");
         Intent i = new Intent(this, ActivityRecognitionIntentService.class);
         mActivityRecongPendingIntent = PendingIntent
                 .getService(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Log.d(TAG, "connected to ActivityRecognition");
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, 0, mActivityRecongPendingIntent);
+        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, 0, mActivityRecongPendingIntent);*/
 
 
         //Update the TextView
@@ -160,9 +162,15 @@ public class first_tab
 
         mRequestingLocationUpdates = false;
 
+        Intent i = new Intent(this, ActivityReceiver.class);
+        stopService(i);
+
         // Stopping the location updates
-        stopLocationUpdates();
+        /*stopLocationUpdates();
         ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
+*/
+        unregisterReceiver(this.receiver);
+        receiver = null;
 
         Intent localIntent = new Intent("ImActive");
         localIntent.putExtra("activity", "dead");
@@ -171,8 +179,7 @@ public class first_tab
         Log.d(TAG, "Confidence : " + 100);
         sendBroadcast(localIntent);
 
-        unregisterReceiver(this.receiver);
-        receiver = null;
+
 
         //this.task.cancel(true);
 
@@ -204,7 +211,7 @@ public class first_tab
   
   public void onConnected(Bundle paramBundle)
   {
-      //displayLocation();
+     /* //displayLocation();
       if (this.mRequestingLocationUpdates) {
         startLocationUpdates();
 
@@ -219,7 +226,7 @@ public class first_tab
 
         //Update the TextView
         //textView.setText("Connected to Google Play Services \nWaiting for Active Recognition... \n");
-      }
+      }*/
 
   }
 
@@ -230,7 +237,7 @@ public class first_tab
   
   public void onConnectionSuspended(int paramInt)
   {
-    this.mGoogleApiClient.connect();
+    //this.mGoogleApiClient.connect();
   }
   
   protected void onCreate(Bundle paramBundle)
@@ -242,13 +249,13 @@ public class first_tab
     //this.btnShowLocation = ((Button)findViewById(R.id.buttonStart));
     this.btnStartLocationUpdates = ((Button)findViewById(R.id.buttonLoop));
     this.mContext = this;
-    if (checkPlayServices())
+    /*if (checkPlayServices())
     {
       System.out.println("**try build API MAP");
       buildGoogleApiClient();
       System.out.println("**try build API ActivityRecognition");
       createLocationRequest();
-    }
+    }*/
     /*this.btnShowLocation.setOnClickListener(new OnClickListener()
     {
       public void onClick(View paramAnonymousView)
@@ -292,19 +299,19 @@ public class first_tab
   protected void onDestroy()
   {
     super.onDestroy();
-    if(mActivityRecongPendingIntent != null) ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
+    /*if(mActivityRecongPendingIntent != null) ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
     this.mGoogleApiClient.disconnect();
-    if(receiver != null) unregisterReceiver(this.receiver);
+    if(receiver != null) unregisterReceiver(this.receiver);*/
   }
 
     @Override
     public void onLocationChanged(Location location) {
         // Assign the new location
-        mLastLocation = location;
+       /* mLastLocation = location;
 
         Toast.makeText(getApplicationContext(), "Location changed!",
                 Toast.LENGTH_SHORT).show();
-
+*/
         // Displaying the new location on UI
         //displayLocation();
     }
@@ -317,16 +324,16 @@ public class first_tab
   protected void onResume()
   {
     super.onResume();
-    checkPlayServices();
+    /*checkPlayServices();
     if ((this.mGoogleApiClient.isConnected()) && (this.mRequestingLocationUpdates)) {
       startLocationUpdates();
-    }
+    }*/
   }
   
   protected void onStart()
   {
     super.onStart();
-    this.mGoogleApiClient.connect();
+    //this.mGoogleApiClient.connect();
   }
   
   protected void onStop()
@@ -387,11 +394,11 @@ public class first_tab
     
     protected String doInBackground(String... paramVarArgs)
     {
-        System.out.println("**try Create Receiver");
+        System.out.println("** FirstTAB try Create Receiver");
         receiver  = new BroadcastReceiver() {
             @Override
             public void onReceive(Context paramAnonymousContext, Intent paramAnonymousIntent) {
-                System.out.println("**receive new Intent from activity recognition");
+                System.out.println("** FirstTAB receive new Intent from activity recognition");
                 Calendar localCalendar = Calendar.getInstance();
                 String str1 = new SimpleDateFormat("h:mm:ss a").format(localCalendar.getTime());
                 String str2 = str1 + " " + paramAnonymousIntent.getStringExtra("activity") + " " + "Confidence : " + paramAnonymousIntent.getExtras().getInt("confidence") + "\n";
@@ -400,7 +407,7 @@ public class first_tab
                 String newActivity = "dead";
                 if (paramAnonymousIntent.getStringExtra("activity").equals("dead"))
                 {
-                    System.out.println("receiver dead");
+                    System.out.println("FirstTAB receiver dead");
                     return;
                 }
                 if (paramAnonymousIntent.getStringExtra("activity").equals("Walking") || paramAnonymousIntent.getStringExtra("activity").equals("On Foot")) {
@@ -417,15 +424,21 @@ public class first_tab
                     setCurrentImage();
                     previousActivity = new String("In Vehicle");
                 }
-                if (previousActivity.equals("In Vehicle") && newActivity.equals("Walking")) {
-                    double d1 = mLastLocation.getLatitude();
-                    double d2 = mLastLocation.getLongitude();
+                if (paramAnonymousIntent.getStringExtra("activity").equals("DEAD")) {
+                    System.out.println("FirstTAB receiver DEAD");
+                    stopService(active);
+                }
+                if (previousActivity.equals("In Vehicle") && newActivity.equals("Walking"))
+                //if(!paramAnonymousIntent.getStringExtra("activity").equals("Still"))
+                {
+                    //double d1 = mLastLocation.getLatitude();
+                    //double d2 = mLastLocation.getLongitude();
                     //textView.setText("Last Location lat : " + d1 + " long : " + d2);
-                    writeLatestLocation(d1, d2);
+                    //writeLatestLocation(d1, d2);
                     //mGoogleApiClient.disconnect();
                     //mGoogleApiClient.connect();
-                    stopLocationUpdates();
-                    ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
+                    //stopLocationUpdates();
+                    //ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
                     btnStartLocationUpdates.setText(getString(R.string.btn_start_location_updates));
                     mRequestingLocationUpdates=false;  //den exei nohma einai allh diergasia
                     unregisterReceiver(receiver);
@@ -434,7 +447,7 @@ public class first_tab
                 }
             }
         };
-        System.out.println("**finish Create Receiver");
+        System.out.println("** FirstTAB finish Create Receiver");
         IntentFilter localIntentFilter = new IntentFilter();
         localIntentFilter.addAction("ImActive");
         registerReceiver(receiver, localIntentFilter);
