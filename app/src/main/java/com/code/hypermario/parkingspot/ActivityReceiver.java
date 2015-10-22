@@ -466,11 +466,12 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
         }
         Calendar localCalendar = Calendar.getInstance();
         int i = localCalendar.get(Calendar.DAY_OF_MONTH);
-        int j = localCalendar.get(Calendar.MONTH);
+        int j = localCalendar.get(Calendar.MONTH) + 1;
         int k = localCalendar.get(Calendar.YEAR);
-        int m = localCalendar.get(Calendar.HOUR);
+        int m = localCalendar.get(Calendar.HOUR_OF_DAY);
         int n = localCalendar.get(Calendar.MINUTE);
-        String str1 = i + "/" + j + "/" + k + " " + m + ":" + n;
+        String min = String.format("%02d",n);
+        String str1 = i + "/" + j + "/" + k + " " + m + ":" + min;
         String str2 = paramDouble1 + ";" + paramDouble2 + ";" + str1 + "\n";
 
         System.out.println("***Write " + str2);
