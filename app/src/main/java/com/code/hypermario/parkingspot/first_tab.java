@@ -275,6 +275,9 @@ public class first_tab extends AppCompatActivity
         displayLocation();
       }
     });*/
+
+    boolean running = isMyServiceRunning(ActivityReceiver.class);
+    if(running) btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
     this.btnStartLocationUpdates.setOnClickListener(new OnClickListener()
     {
       public void onClick(View paramAnonymousView)

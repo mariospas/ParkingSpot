@@ -3,6 +3,8 @@ package com.code.hypermario.parkingspot;
 
 import android.Manifest;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -10,14 +12,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -196,6 +202,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                         double d2 = mLastLocation.getLongitude();
                         //textView.setText("Last Location lat : " + d1 + " long : " + d2);
                         writeLatestLocation(d1, d2);
+                        showNotification(String.valueOf(d1),String.valueOf(d2),"CAR");
                         //mGoogleApiClient.disconnect();
                         //mGoogleApiClient.connect();
                         //stopLocationUpdates();
@@ -478,6 +485,27 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
             e.printStackTrace();
         }
 
+    }
+
+
+    public void showNotification(String lat,String longi,String vehicle) {
+        Intent localIntent = new Intent("android.intent.action.VIEW", Uri.parse("geo:0,0?q=" + lat + "," + longi));
+        localIntent.setPackage("com.google.android.apps.maps");
+        PendingIntent pi = PendingIntent.getActivity(this, 0, localIntent, 0);
+        Uri uri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+        Notification notification = new NotificationCompat.Builder(this)
+                .setTicker("Where you left your "+vehicle)
+                .setSmallIcon(R.drawable.mini_car)
+                .setContentTitle("Your "+vehicle+" location !")
+                .setContentText("Latitude : " + lat +"\nLongitude : "+longi)
+                .setContentIntent(pi)
+                .setAutoCancel(true)
+                .setSound(uri)
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(0, notification);
     }
 
 

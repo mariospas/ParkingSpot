@@ -50,11 +50,11 @@ public class FeedListActivity extends AppCompatActivity implements AppBarLayout.
       String str1 = arrayOfString[0];
       String str2 = arrayOfString[1];
       String str3 = arrayOfString[2];
-      String str4 = "Latitude " + str1 + "\nLongitude : " + str2;
+      String str4 = "Latitude : " + str1 + "\nLongitude : " + str2;
       System.out.println("***" + str3 + " " + str1 + " " + str2);
       FeedItem localFeedItem = new FeedItem();
       localFeedItem.setTitle(str3+"\n"+str4);
-      localFeedItem.setThumbnail("Latitude " + str1 + " Longitude : " + str2);
+      localFeedItem.setThumbnail("Latitude : " + str1 + " Longitude : " + str2);
       this.feedItemList.add(localFeedItem);
       System.out.println("***Inserted");
     }
