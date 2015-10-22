@@ -1,6 +1,7 @@
 package com.code.hypermario.parkingspot;
 
 
+import android.Manifest;
 import android.app.IntentService;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -8,10 +9,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -27,8 +31,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.squareup.picasso.Picasso;
 
@@ -39,7 +41,10 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-public class ActivityReceiver extends IntentService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener{
+import com.code.hypermario.parkingspot.location.LocationListener;
+
+
+public class ActivityReceiver extends IntentService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private final IBinder mBinder = new LocalBinder();
     private static int DISPLACEMENT = 10;
@@ -56,26 +61,31 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
     private GoogleApiClient mGoogleApiClient;
     private boolean mIntentInProgress;
     private Location mLastLocation;
-    private LocationRequest mLocationRequest;
+    //private LocationRequest mLocationRequest;
     private boolean mRequestingLocationUpdates = false;
     private TextView myText = null;
     private BroadcastReceiver receiver;
     //private DownloadWebPageTask task;
     private TextView textView;
     PendingIntent mActivityRecongPendingIntent = null;
-    private Integer images[] = {R.drawable.car, R.drawable.man,R.drawable.hole};
+    private Integer images[] = {R.drawable.car, R.drawable.man, R.drawable.hole};
     private int currImage = 0;
     int width;
     int height;
     String previousActivity = "dead";
     boolean flag = true;
 
-    private boolean running ;
+    //private static final String TAG = "BOOMBOOMTESTGPS";
+    private LocationManager mLocationManager = null;
+    private static final int LOCATION_INTERVAL = 10000;//1000;
+    private static final float LOCATION_DISTANCE = 0;//10f;
+    LocationListener[] mLocationListeners;
+
+    private boolean running;
 
     private File rootImage;
 
-    static
-    {
+    static {
         FATEST_INTERVAL = 1000;
     }
 
@@ -89,7 +99,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                 .isGooglePlayServicesAvailable(this);
         if (resultCode != ConnectionResult.SUCCESS) {
             if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-               System.out.println("ERROR user recoverable***");
+                System.out.println("ERROR user recoverable***");
             } else {
                 Toast.makeText(getApplicationContext(),
                         "This device is not supported.", Toast.LENGTH_LONG)
@@ -106,11 +116,24 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
             // Changing the button text
             //btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
 
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for Activity#requestPermissions for more details.
+                    return;
+                }
+            }
+            mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             mRequestingLocationUpdates = true;
 
             // Starting the location updates
-            startLocationUpdates();
+            //startLocationUpdates();
 
             /////activity service recognition start////////////
             System.out.println("**try to find Intent");
@@ -128,7 +151,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
 
 
             System.out.println("**try Create Receiver");
-            receiver  = new BroadcastReceiver() {
+            receiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context paramAnonymousContext, Intent paramAnonymousIntent) {
                     System.out.println("** ACTIVITYRECEIVER receive new Intent from activity recognition");
@@ -138,16 +161,14 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                     //String str3 = first_tab.this.textView.getText() + str2;
                     //first_tab.this.textView.setText(str3);
                     String newActivity = "dead";
-                    if (paramAnonymousIntent.getStringExtra("activity").equals("dead"))
-                    {
+                    if (paramAnonymousIntent.getStringExtra("activity").equals("dead")) {
                         System.out.println(" ACTIVITYRECEIVER receiver dead");
-                        flag = false;
+                        flag = false; //to terminate while loop in onHandleIntent
                         return;
                     }
                     if (paramAnonymousIntent.getStringExtra("activity").equals("Walking") || paramAnonymousIntent.getStringExtra("activity").equals("On Foot")) {
 
-                        if(paramAnonymousIntent.getIntExtra("confidence",0) > 40)
-                        {
+                        if (paramAnonymousIntent.getIntExtra("confidence", 0) > 40) {
                             newActivity = new String("Walking");
                         }
                     }
@@ -156,25 +177,39 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                         previousActivity = new String("In Vehicle");
                     }
                     if (previousActivity.equals("In Vehicle") && newActivity.equals("Walking"))
-                    //if(!paramAnonymousIntent.getStringExtra("activity").equals("Still"))
+                    //if (!paramAnonymousIntent.getStringExtra("activity").equals("Still"))
                     {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                // TODO: Consider calling
+                                //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for Activity#requestPermissions for more details.
+                                return;
+                            }
+                        }
+                        mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                         double d1 = mLastLocation.getLatitude();
                         double d2 = mLastLocation.getLongitude();
                         //textView.setText("Last Location lat : " + d1 + " long : " + d2);
                         writeLatestLocation(d1, d2);
                         //mGoogleApiClient.disconnect();
                         //mGoogleApiClient.connect();
-                        stopLocationUpdates();
+                        //stopLocationUpdates();
                         ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
-                        mRequestingLocationUpdates=false;  //den exei nohma einai allh diergasia
+                        mRequestingLocationUpdates = false;  //den exei nohma einai allh diergasia
                         unregisterReceiver(receiver);
                         receiver = null;
 
+                        flag = false; //to terminate while loop in onHandleIntent
 
-                        Intent localIntent = new Intent("ImActive");
+                        /*Intent localIntent = new Intent("ImActive");
                         localIntent.putExtra("activity", "DEAD");
                         localIntent.putExtra("confidence", 100);
-                        sendBroadcast(localIntent);
+                        sendBroadcast(localIntent);*/
                         return;
                     }
                 }
@@ -193,7 +228,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
             mRequestingLocationUpdates = false;
 
             // Stopping the location updates
-            stopLocationUpdates();
+            //stopLocationUpdates();
             ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
 
             Intent localIntent = new Intent("ImActive");
@@ -212,20 +247,11 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
         }
     }
 
-    protected void createLocationRequest()
-    {
-        this.mLocationRequest = new LocationRequest();
-        this.mLocationRequest.setInterval(UPDATE_INTERVAL);
-        this.mLocationRequest.setFastestInterval(FATEST_INTERVAL);
-        this.mLocationRequest.setPriority(100);
-        this.mLocationRequest.setSmallestDisplacement(DISPLACEMENT);
-    }
 
     protected synchronized void buildGoogleApiClient() {
         this.mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
                 .addApi(ActivityRecognition.API)
                 .build();
     }
@@ -233,7 +259,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        super.onStartCommand(intent,flags,startId);
+        super.onStartCommand(intent, flags, startId);
         System.out.println("*** OnStartCommand ***");
         //mGoogleApiClient.connect();
         // We want this service to continue running until it is explicitly
@@ -273,6 +299,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
         if(receiver != null) unregisterReceiver(this.receiver);
     }*/
 
+
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -280,47 +307,65 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if (checkPlayServices())
-        {
+        if (checkPlayServices()) {
             System.out.println("**try build API MAP");
             buildGoogleApiClient();
             System.out.println("**try build API ActivityRecognition");
-            createLocationRequest();
+            //createLocationRequest();
             mGoogleApiClient.connect();
             mGoogleApiClient.blockingConnect(30, TimeUnit.SECONDS);
             System.out.println("**try connect google");
         }
 
+        mLocationListeners = new LocationListener[]{
+                new LocationListener(LocationManager.GPS_PROVIDER),
+                new LocationListener(LocationManager.NETWORK_PROVIDER)
+        };
+
+        initializeLocationManager();
+        try {
+            mLocationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                    mLocationListeners[1]);
+        } catch (java.lang.SecurityException ex) {
+            Log.i(TAG, "fail to request location update, ignore", ex);
+        } catch (IllegalArgumentException ex) {
+            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
+        }
+        try {
+            mLocationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                    mLocationListeners[0]);
+        } catch (java.lang.SecurityException ex) {
+            Log.i(TAG, "fail to request location update, ignore", ex);
+        } catch (IllegalArgumentException ex) {
+            Log.d(TAG, "gps provider does not exist " + ex.getMessage());
+        }
+
 
         togglePeriodicLocationUpdates();
 
-        while(flag)
-        {
+        while (flag) {
 
         }
 
         //System.out.println("** ACTIVITY RECEIVE finish onHandleIntent");
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-        // Assign the new location
-        mLastLocation = location;
 
-        Toast.makeText(getApplicationContext(), "Location changed!",
-                Toast.LENGTH_SHORT).show();
-
-        // Displaying the new location on UI
-        //displayLocation();
+    private void initializeLocationManager() {
+        Log.e(TAG, "initializeLocationManager");
+        if (mLocationManager == null) {
+            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        }
     }
 
     @Override
-    public void onConnected(Bundle paramBundle)
-    {
+    public void onConnected(Bundle paramBundle) {
         //displayLocation();
         System.out.println("*** " + "SUCCESS CONNECT" + " ****");
         if (this.mRequestingLocationUpdates) {
-            startLocationUpdates();
+            //startLocationUpdates();
 
             System.out.println("**try to find Intent");
             Intent i = new Intent(this, ActivityRecognitionIntentService.class);
@@ -338,19 +383,16 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
     }
 
 
-
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         System.out.println("*** fail connection ****");
-        System.out.println("*** " + connectionResult.toString()+" ****");
+        System.out.println("*** " + connectionResult.toString() + " ****");
     }
 
     @Override
-    public void onConnectionSuspended(int paramInt)
-    {
+    public void onConnectionSuspended(int paramInt) {
         this.mGoogleApiClient.connect();
     }
-
 
 
     public class LocalBinder extends Binder {
@@ -369,21 +411,38 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
         System.out.println("ON DESTROY ACTIVITY RECEIVER");
         Toast.makeText(this, "MyService Stopped", Toast.LENGTH_LONG).show();
         super.onDestroy();
-        if(mActivityRecongPendingIntent != null) ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
+        if (mActivityRecongPendingIntent != null)
+            ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
         this.mGoogleApiClient.disconnect();
-        if(receiver != null) unregisterReceiver(this.receiver);
+        if (receiver != null) unregisterReceiver(this.receiver);
+
+        if (mLocationManager != null) {
+            for (int i = 0; i < mLocationListeners.length; i++) {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for Activity#requestPermissions for more details.
+                            return;
+                        }
+                    }
+                    mLocationManager.removeUpdates(mLocationListeners[i]);
+                } catch (Exception ex) {
+                    Log.i(TAG, "fail to remove location listners, ignore", ex);
+                }
+            }
+        }
     }
 
 
-    protected void startLocationUpdates()
-    {
-        LocationServices.FusedLocationApi.requestLocationUpdates(this.mGoogleApiClient, this.mLocationRequest, this);
-    }
 
-    protected void stopLocationUpdates()
-    {
-        LocationServices.FusedLocationApi.removeLocationUpdates(this.mGoogleApiClient, this);
-    }
+
+
 
     public void writeLatestLocation(double paramDouble1, double paramDouble2)
     {

@@ -1,5 +1,6 @@
 package com.code.hypermario.parkingspot;
 
+import android.app.ActivityManager;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -123,8 +124,19 @@ public class first_tab extends AppCompatActivity
   /**
    * Method to toggle periodic location updates
    * */
+
+  private boolean isMyServiceRunning(Class<?> serviceClass) {
+      ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+      for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+          if (serviceClass.getName().equals(service.service.getClassName())) {
+              return true;
+          }
+      }
+      return false;
+  }
+
   private void togglePeriodicLocationUpdates() {
-    if (!mRequestingLocationUpdates) {
+    if (!isMyServiceRunning(ActivityReceiver.class)) {
         // Changing the button text
         btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
 
@@ -424,10 +436,10 @@ public class first_tab extends AppCompatActivity
                     setCurrentImage();
                     previousActivity = new String("In Vehicle");
                 }
-                if (paramAnonymousIntent.getStringExtra("activity").equals("DEAD")) {
+                /*if (paramAnonymousIntent.getStringExtra("activity").equals("DEAD")) {
                     System.out.println("FirstTAB receiver DEAD");
                     stopService(active);
-                }
+                }*/
                 if (previousActivity.equals("In Vehicle") && newActivity.equals("Walking"))
                 //if(!paramAnonymousIntent.getStringExtra("activity").equals("Still"))
                 {
