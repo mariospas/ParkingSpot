@@ -277,7 +277,13 @@ public class first_tab extends AppCompatActivity
     });*/
 
     boolean running = isMyServiceRunning(ActivityReceiver.class);
-    if(running) btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
+    if(running)
+    {
+        btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
+        this.task = new DownloadWebPageTask();
+        //mRequestingLocationUpdates=false; //gt den ginete na enhmerothei apo thn allh diergasia
+        this.task.execute(new String[]{"http://www.vogella.com"});
+    }
     this.btnStartLocationUpdates.setOnClickListener(new OnClickListener()
     {
       public void onClick(View paramAnonymousView)
@@ -315,8 +321,8 @@ public class first_tab extends AppCompatActivity
   {
     super.onDestroy();
     /*if(mActivityRecongPendingIntent != null) ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
-    this.mGoogleApiClient.disconnect();
-    if(receiver != null) unregisterReceiver(this.receiver);*/
+    this.mGoogleApiClient.disconnect();*/
+    if(receiver != null) unregisterReceiver(this.receiver);
   }
 
     @Override
