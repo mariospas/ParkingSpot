@@ -5,13 +5,17 @@ import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender.SendIntentException;
 import android.graphics.Point;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -276,12 +280,33 @@ public class first_tab extends AppCompatActivity
       }
     });*/
 
+
+    // Get Location Manager and check for GPS & Network location services
+    LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+    if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+    {
+      // Build the alert dialog
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      builder.setTitle("Location Services Not Active");
+      builder.setMessage("Please enable Location Services and GPS");
+      builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+          public void onClick(DialogInterface dialogInterface, int i) {
+              // Show location settings when the user acknowledges the alert dialog
+              Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+              startActivity(intent);
+          }
+      });
+      Dialog alertDialog = builder.create();
+      alertDialog.setCanceledOnTouchOutside(false);
+      alertDialog.show();
+    }
+
+
     boolean running = isMyServiceRunning(ActivityReceiver.class);
     if(running)
     {
         btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
         this.task = new DownloadWebPageTask();
-        //mRequestingLocationUpdates=false; //gt den ginete na enhmerothei apo thn allh diergasia
         this.task.execute(new String[]{"http://www.vogella.com"});
     }
     this.btnStartLocationUpdates.setOnClickListener(new OnClickListener()
