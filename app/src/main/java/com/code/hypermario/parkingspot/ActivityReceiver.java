@@ -2,6 +2,7 @@ package com.code.hypermario.parkingspot;
 
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -33,6 +34,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.code.hypermario.parkingspot.alarm.AlarmReceiver;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -86,6 +88,14 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
     private static final int LOCATION_INTERVAL = 10000;//1000;
     private static final float LOCATION_DISTANCE = 0;//10f;
     LocationListener[] mLocationListeners;
+    boolean started; //location updates start or stop;
+
+    Calendar c = Calendar.getInstance();   //for time of location updates
+    int last_min;
+    int max_min_loc_open = 5;
+
+    private PendingIntent pendingIntent;   //alarm
+    private AlarmManager manager;
 
     private boolean running;
 
@@ -123,7 +133,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
             //btnStartLocationUpdates.setText(getString(R.string.btn_stop_location_updates));
 
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     // TODO: Consider calling
                     //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
@@ -135,7 +145,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                     return;
                 }
             }
-            mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);*/
             mRequestingLocationUpdates = true;
 
             // Starting the location updates
@@ -162,6 +172,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                 public void onReceive(Context paramAnonymousContext, Intent paramAnonymousIntent) {
                     System.out.println("** ACTIVITYRECEIVER receive new Intent from activity recognition");
                     Calendar localCalendar = Calendar.getInstance();
+                    int min = localCalendar.get(Calendar.MINUTE);
                     String str1 = new SimpleDateFormat("h:mm:ss a").format(localCalendar.getTime());
                     String str2 = str1 + " " + paramAnonymousIntent.getStringExtra("activity") + " " + "Confidence : " + paramAnonymousIntent.getExtras().getInt("confidence") + "\n";
                     //String str3 = first_tab.this.textView.getText() + str2;
@@ -181,6 +192,34 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                     if (paramAnonymousIntent.getStringExtra("activity").equals("In Vehicle")) {
 
                         previousActivity = new String("In Vehicle");
+                        if (paramAnonymousIntent.getIntExtra("confidence", 0) < 50 && !started)    //start location listener when i need it to optimize battery consumption
+                        {
+                            last_min = c.get(Calendar.MINUTE);
+                            startLocationUpdates();
+                        }
+                        else if(paramAnonymousIntent.getIntExtra("confidence", 0) >= 50 && Math.abs(min - last_min)>=max_min_loc_open && started)
+                        {
+                            stopLocationUpdates();
+                        }
+                    }
+                    if (paramAnonymousIntent.getStringExtra("activity").equals("Still") ||
+                        paramAnonymousIntent.getStringExtra("activity").equals("N/A") ||
+                        paramAnonymousIntent.getStringExtra("activity").equals("Tilting")
+                        ) //start location listener when i need it to optimize battery consumption
+                    {
+                        if(!started) {
+                            last_min = c.get(Calendar.MINUTE);
+                            startLocationUpdates();
+                            if (paramAnonymousIntent.getStringExtra("activity").equals("Still"))
+                            {
+                                startAlarm();
+                            }
+                        }
+                        else if(Math.abs(min - last_min)>=max_min_loc_open && started)
+                        {
+                            stopLocationUpdates();
+                            cancelAlarm();
+                        }
                     }
                     if (previousActivity.equals("In Vehicle") && newActivity.equals("Walking"))
                     //if (!paramAnonymousIntent.getStringExtra("activity").equals("Still"))
@@ -330,7 +369,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
         };
 
         initializeLocationManager();
-        try {
+        /*try {
             mLocationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
                     mLocationListeners[1]);
@@ -347,8 +386,12 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
             Log.i(TAG, "fail to request location update, ignore", ex);
         } catch (IllegalArgumentException ex) {
             Log.d(TAG, "gps provider does not exist " + ex.getMessage());
-        }
+        }*/
 
+        // Retrieve a PendingIntent that will perform a broadcast
+        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+        alarmIntent.putExtra("activity", "alarm");
+        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
 
         togglePeriodicLocationUpdates();
 
@@ -416,7 +459,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
     @Override
     public void onDestroy() {
         System.out.println("ON DESTROY ACTIVITY RECEIVER");
-        Toast.makeText(this, "MyService Stopped", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Service Stopped", Toast.LENGTH_LONG).show();
         super.onDestroy();
         if (mActivityRecongPendingIntent != null)
             ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, mActivityRecongPendingIntent);
@@ -444,6 +487,8 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                 }
             }
         }
+        cancelAlarm();
+
     }
 
 
@@ -470,7 +515,7 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
         int k = localCalendar.get(Calendar.YEAR);
         int m = localCalendar.get(Calendar.HOUR_OF_DAY);
         int n = localCalendar.get(Calendar.MINUTE);
-        String min = String.format("%02d",n);
+        String min = String.format("%02d", n);
         String str1 = i + "/" + j + "/" + k + " " + m + ":" + min;
         String str2 = paramDouble1 + ";" + paramDouble2 + ";" + str1 + "\n";
 
@@ -507,6 +552,81 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(0, notification);
+    }
+
+
+    public void stopLocationUpdates()
+    {
+        started = false;
+        if (mLocationManager != null) {
+            for (int i = 0; i < mLocationListeners.length; i++) {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for Activity#requestPermissions for more details.
+                            return;
+                        }
+                    }
+                    mLocationManager.removeUpdates(mLocationListeners[i]);
+                } catch (Exception ex) {
+                    Log.i(TAG, "fail to remove location listners, ignore", ex);
+                }
+            }
+        }
+    }
+
+    public void startLocationUpdates()
+    {
+        started = true;
+        try {
+            mLocationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                    mLocationListeners[1]);
+        } catch (java.lang.SecurityException ex) {
+            Log.i(TAG, "fail to request location update, ignore", ex);
+        } catch (IllegalArgumentException ex) {
+            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
+        }
+        try {
+            mLocationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                    mLocationListeners[0]);
+        } catch (java.lang.SecurityException ex) {
+            Log.i(TAG, "fail to request location update, ignore", ex);
+        } catch (IllegalArgumentException ex) {
+            Log.d(TAG, "gps provider does not exist " + ex.getMessage());
+        }
+    }
+
+
+    public void startAlarm() {
+        manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        long interval = TimeUnit.MINUTES.toMillis(max_min_loc_open) + 1000;
+
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+            manager.setExact(AlarmManager.RTC_WAKEUP, interval, pendingIntent);
+        } else {
+            Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+            manager.set(AlarmManager.RTC_WAKEUP, interval, pendingIntent);
+        }*/
+        manager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+        //Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+
+    }
+
+
+    public void cancelAlarm() {
+        if (manager != null) {
+            manager.cancel(pendingIntent);
+            //Toast.makeText(this, "Alarm Canceled", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
