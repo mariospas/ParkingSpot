@@ -191,14 +191,15 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                     }
                     if (paramAnonymousIntent.getStringExtra("activity").equals("In Vehicle")) {
 
-                        previousActivity = new String("In Vehicle");
-                        if (paramAnonymousIntent.getIntExtra("confidence", 0) < 50 && !started)    //start location listener when i need it to optimize battery consumption
+                        //previousActivity = new String("In Vehicle");
+                        if (paramAnonymousIntent.getIntExtra("confidence", 0) < 40 && !started)    //start location listener when i need it to optimize battery consumption
                         {
                             last_min = c.get(Calendar.MINUTE);
                             startLocationUpdates();
                         }
-                        else if(paramAnonymousIntent.getIntExtra("confidence", 0) >= 50 && Math.abs(min - last_min)>=max_min_loc_open && started)
+                        else if(paramAnonymousIntent.getIntExtra("confidence", 0) >= 40 && started) //&& Math.abs(min - last_min)>=max_min_loc_open && started)
                         {
+                            previousActivity = new String("In Vehicle");
                             stopLocationUpdates();
                         }
                     }
