@@ -185,6 +185,10 @@ public class ActivityReceiver extends IntentService implements GoogleApiClient.C
                     }
                     if (paramAnonymousIntent.getStringExtra("activity").equals("Walking") || paramAnonymousIntent.getStringExtra("activity").equals("On Foot")) {
 
+                        if(!started) {
+                            last_min = c.get(Calendar.MINUTE);
+                            startLocationUpdates();
+                        }
                         if (paramAnonymousIntent.getIntExtra("confidence", 0) > 40) {
                             newActivity = new String("Walking");
                         }
