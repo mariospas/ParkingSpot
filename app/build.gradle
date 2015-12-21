@@ -8,8 +8,8 @@ android {
         applicationId "com.code.hypermario.parkingspot"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 8
-        versionName "3.2.1"
+        versionCode 9
+        versionName "3.2.2"
     }
     buildTypes {
         release {
@@ -44,4 +44,13 @@ dependencies {
 
 dependencies {
     compile 'com.yqritc:recyclerview-flexibledivider:1.2.6'
+}
+
+dependencies {
+    compile 'com.purplebrain.adbuddiz.sdk:AdBuddiz-Java:3.+'
+}
+repositories {
+    maven {
+        url 'http://repository.adbuddiz.com/maven'
+    }
 }

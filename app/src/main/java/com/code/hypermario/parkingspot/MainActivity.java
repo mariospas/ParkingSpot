@@ -9,6 +9,7 @@ import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
 
 import com.code.hypermario.parkingspot.recyclerview.FeedListActivity;
+import com.purplebrain.adbuddiz.sdk.AdBuddiz;
 
 @SuppressWarnings("deprecation")
 public class MainActivity extends TabActivity
@@ -16,6 +17,8 @@ public class MainActivity extends TabActivity
   TabHost localTabHost;
   protected void onCreate(Bundle paramBundle)
   {
+    AdBuddiz.setPublisherKey("eedac9b7-8460-43f2-ba05-d4a0ae4a9f8a");
+    AdBuddiz.cacheAds(this); // this = current Activity
     super.onCreate(paramBundle);
     setContentView(R.layout.maintabbed);
     localTabHost = (TabHost)findViewById(android.R.id.tabhost);

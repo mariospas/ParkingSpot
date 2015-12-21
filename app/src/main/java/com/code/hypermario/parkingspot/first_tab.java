@@ -40,6 +40,7 @@ import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.purplebrain.adbuddiz.sdk.AdBuddiz;
 import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
@@ -120,7 +121,9 @@ public class first_tab extends AppCompatActivity
 
         Log.d(TAG, "Periodic location updates started!");
 
-    } else {
+    }
+    else
+    {
         // Changing the button text
         btnStartLocationUpdates.setText(getString(R.string.btn_start_location_updates));
 
@@ -145,6 +148,7 @@ public class first_tab extends AppCompatActivity
 
         Log.d(TAG, "Periodic location updates stopped!");
     }
+    AdBuddiz.showAd(this); // this = current Activity
   }
 
 
