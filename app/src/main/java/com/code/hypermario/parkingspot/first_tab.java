@@ -157,6 +157,38 @@ public class first_tab extends AppCompatActivity
   protected void onCreate(Bundle paramBundle)
   {
     super.onCreate(paramBundle);
+
+      final Dialog dialog = new Dialog(this);;
+
+      File f = new File(getFilesDir(), "NewUser.txt");
+      if(!f.exists() && !f.isDirectory())
+      {
+          dialog.setContentView(R.layout.dialog);
+          dialog.setTitle("Intro");
+          TextView text = (TextView) dialog.findViewById(R.id.TextView01);
+          text.setText("- Press start tracking button before start driving.\n" +
+                  "- When you park your car and start walking the app will save your parking location automatically.\n" +
+                  "- After that if you want to see your last parking location just click on History tab");
+          try {
+              f.createNewFile();
+          } catch (IOException e) {
+              e.printStackTrace();
+          }
+
+          Button button = (Button) dialog.findViewById(R.id.Button01);
+          button.setOnClickListener(new OnClickListener() {
+              @Override
+              public void onClick(View view) {
+                  dialog.dismiss();
+              }
+          });
+
+          dialog.show();
+      }
+
+
+
+
     setContentView(R.layout.content_main);
     //this.lView = ((LinearLayout)findViewById(R.id.dynamicTxT));
     this.lblLocation = new TextView(this);
